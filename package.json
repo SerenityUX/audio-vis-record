@@ -10,7 +10,7 @@
   "dependencies": {
     "gifuct-js": "^2.1.2",
     "jsmediatags": "^3.9.7",
-    "next": "16.0.8",
+    "next": "16.0.9",
     "react": "19.2.1",
     "react-dom": "19.2.1"
   }
