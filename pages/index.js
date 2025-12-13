@@ -215,7 +215,6 @@ export default function Home() {
         filter: audioFile && baselineAverage !== null ? `saturate(${saturation})` : 'none',
       }}
     >
-      {/* Grain overlay - subtle film grain effect synced with music */}
       {audioFile && baselineAverage !== null && (
         <div
           style={{
