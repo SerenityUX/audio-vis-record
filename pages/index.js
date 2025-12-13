@@ -206,7 +206,7 @@ export default function Home() {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#ffffff',
-        backgroundImage: audioFile ? 'url(/woodBG.jpg)' : 'none',
+        backgroundImage: audioFile ? 'url(/woodBG.png)' : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
