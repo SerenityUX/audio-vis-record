@@ -286,6 +286,7 @@ export default function Home() {
         cursor: audioFile ? 'none' : 'default',
         position: 'relative',
         filter: audioFile && baselineAverage !== null ? `saturate(${saturation})` : 'none',
+        overflow: 'hidden',
       }}
     >
       {audioFile && baselineAverage !== null && (
@@ -385,8 +386,8 @@ export default function Home() {
                 <div style={{ position: 'relative', marginBottom: '10px' }}>
                   <img src="/MoneyTree.jpg" alt="Money Tree" style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '4px', filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4)) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))' }} />
                   {baseUrl && (
-                    <a href={`/api/waterPlant?plantName=${encodeURIComponent('Money Tree')}`} target="_blank" rel="noopener noreferrer" style={{ position: 'absolute', bottom: '8px', left: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '4px', borderRadius: '4px' }}>
-                      <QRCodeSVG value={`${baseUrl}/api/waterPlant?plantName=${encodeURIComponent('Money Tree')}`} size={30} />
+                    <a href={`/api/waterPlant?plantName=${encodeURIComponent('Money Tree')}`} target="_blank" rel="noopener noreferrer" style={{ position: 'absolute', top: '8px', left: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '4px', borderRadius: '4px' }}>
+                      <QRCodeSVG value={`${baseUrl}/api/waterPlant?plantName=${encodeURIComponent('Money Tree')}`} size={45} />
                     </a>
                   )}
                 </div>
@@ -409,8 +410,8 @@ export default function Home() {
                 <div style={{ position: 'relative', marginBottom: '10px' }}>
                   <img src="/Monstera.jpg" alt="Monstera" style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '4px', filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4)) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))' }} />
                   {baseUrl && (
-                    <a href={`/api/waterPlant?plantName=${encodeURIComponent('Monstera')}`} target="_blank" rel="noopener noreferrer" style={{ position: 'absolute', bottom: '8px', left: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '4px', borderRadius: '4px' }}>
-                      <QRCodeSVG value={`${baseUrl}/api/waterPlant?plantName=${encodeURIComponent('Monstera')}`} size={30} />
+                    <a href={`/api/waterPlant?plantName=${encodeURIComponent('Monstera')}`} target="_blank" rel="noopener noreferrer" style={{ position: 'absolute', top: '8px', left: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '4px', borderRadius: '4px' }}>
+                      <QRCodeSVG value={`${baseUrl}/api/waterPlant?plantName=${encodeURIComponent('Monstera')}`} size={45} />
                     </a>
                   )}
                 </div>
@@ -433,8 +434,8 @@ export default function Home() {
                 <div style={{ position: 'relative', marginBottom: '10px' }}>
                   <img src="/Peperomia.jpg" alt="Peperomia" style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '4px', filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4)) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))' }} />
                   {baseUrl && (
-                    <a href={`/api/waterPlant?plantName=${encodeURIComponent('Peperomia')}`} target="_blank" rel="noopener noreferrer" style={{ position: 'absolute', bottom: '8px', left: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '4px', borderRadius: '4px' }}>
-                      <QRCodeSVG value={`${baseUrl}/api/waterPlant?plantName=${encodeURIComponent('Peperomia')}`} size={30} />
+                    <a href={`/api/waterPlant?plantName=${encodeURIComponent('Peperomia')}`} target="_blank" rel="noopener noreferrer" style={{ position: 'absolute', top: '8px', left: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '4px', borderRadius: '4px' }}>
+                      <QRCodeSVG value={`${baseUrl}/api/waterPlant?plantName=${encodeURIComponent('Peperomia')}`} size={45} />
                     </a>
                   )}
                 </div>
