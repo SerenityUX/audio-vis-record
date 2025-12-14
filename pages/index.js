@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function Home() {
   const [audioFile, setAudioFile] = useState(null);
@@ -10,6 +11,17 @@ export default function Home() {
   const [ripples, setRipples] = useState([]);
   const [saturation, setSaturation] = useState(1);
   const [grainOpacity, setGrainOpacity] = useState(0.08);
+  const [wateringDays, setWateringDays] = useState({
+    moneyTree: 3,
+    monstera: 5,
+    peperomia: 7,
+  });
+  const [wateringIntervals, setWateringIntervals] = useState({
+    moneyTree: 10,
+    monstera: 10,
+    peperomia: 10,
+  });
+  const [baseUrl, setBaseUrl] = useState('');
   const audioRef = useRef(null);
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
@@ -21,6 +33,16 @@ export default function Home() {
   const rippleIdRef = useRef(0);
 
   const gifs = ['/cat.gif', '/matchaStir.gif', '/scenery.gif'];
+
+  const getPlantStatus = (days, interval) => {
+    if (days === interval) {
+      return { color: '#4ade80', text: 'Watered Today' }; // green
+    } else if (days === 0) {
+      return { color: '#ef4444', text: 'Needs water today' }; // red
+    } else {
+      return { color: '#eab308', text: `Needs watering in ${days} days` }; // yellow
+    }
+  };
 
   const getRandomGif = () => {
     const randomIndex = Math.floor(Math.random() * gifs.length);
@@ -197,6 +219,57 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [ripples.length]);
 
+  // Get base URL for QR codes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setBaseUrl(window.location.origin);
+    }
+  }, []);
+
+  // Fetch plant statuses every 10 seconds
+  useEffect(() => {
+    const fetchPlantStatuses = async () => {
+      try {
+        const response = await fetch('/api/getPlantsStatuses');
+        const data = await response.json();
+        
+        if (data.plants) {
+          // Map database plant names to state keys
+          const plantNameMap = {
+            'Money Tree': 'moneyTree',
+            'Monstera': 'monstera',
+            'Peperomia': 'peperomia',
+          };
+
+          const updatedStatuses = {};
+          const updatedIntervals = {};
+          data.plants.forEach((plant) => {
+            const stateKey = plantNameMap[plant.plant_name];
+            if (stateKey) {
+              updatedStatuses[stateKey] = plant.days_until_next_watering || 0;
+              updatedIntervals[stateKey] = plant.watering_interval || 7;
+            }
+          });
+
+          if (Object.keys(updatedStatuses).length > 0) {
+            setWateringDays((prev) => ({ ...prev, ...updatedStatuses }));
+            setWateringIntervals((prev) => ({ ...prev, ...updatedIntervals }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching plant statuses:', error);
+      }
+    };
+
+    // Fetch immediately on mount
+    fetchPlantStatuses();
+
+    // Then fetch every 3 seconds
+    const interval = setInterval(fetchPlantStatuses, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div
       style={{
@@ -206,7 +279,7 @@ export default function Home() {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#ffffff',
-        backgroundImage: audioFile ? 'url(/woodBG.png)' : 'none',
+        backgroundImage: audioFile ? 'url(/woodBG.jpg)' : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -255,7 +328,7 @@ export default function Home() {
           style={{
             position: 'absolute',
             left: '20px',
-            top: '50%',
+            top: '100%',
             transform: `translateY(calc(-50% + ${Math.sin(rotation * Math.PI / 180) * 3}px)) translateX(${Math.cos(rotation * Math.PI / 180) * 2}px)`,
             height: '400px',
             width: 'auto',
@@ -274,7 +347,7 @@ export default function Home() {
           style={{
             position: 'absolute',
             right: '20px',
-            top: '50%',
+            top: '100%',
             transform: `translateY(calc(-50% + ${Math.sin((rotation + 180) * Math.PI / 180) * 3}px)) translateX(${Math.cos((rotation + 180) * Math.PI / 180) * -2}px)`,
             height: '400px',
             width: 'auto',
@@ -295,7 +368,95 @@ export default function Home() {
         <>
           <audio ref={audioRef} loop />
           {baselineAverage !== null && (
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '75vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                zIndex: 10,
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ position: 'relative', marginBottom: '10px' }}>
+                  <img src="/MoneyTree.jpg" alt="Money Tree" style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '4px', filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4)) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))' }} />
+                  {baseUrl && (
+                    <a href={`/api/waterPlant?plantName=${encodeURIComponent('Money Tree')}`} target="_blank" rel="noopener noreferrer" style={{ position: 'absolute', bottom: '8px', left: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '4px', borderRadius: '4px' }}>
+                      <QRCodeSVG value={`${baseUrl}/api/waterPlant?plantName=${encodeURIComponent('Money Tree')}`} size={30} />
+                    </a>
+                  )}
+                </div>
+                <p style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>Money Tree</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '-8px' }}>
+                  {(() => {
+                    const status = getPlantStatus(wateringDays.moneyTree, wateringIntervals.moneyTree);
+                    return (
+                      <>
+                        <div style={{ width: '8px', height: '8px', backgroundColor: status.color, borderRadius: '50%' }}></div>
+                        <span style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+                          {status.text}
+                        </span>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ position: 'relative', marginBottom: '10px' }}>
+                  <img src="/Monstera.jpg" alt="Monstera" style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '4px', filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4)) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))' }} />
+                  {baseUrl && (
+                    <a href={`/api/waterPlant?plantName=${encodeURIComponent('Monstera')}`} target="_blank" rel="noopener noreferrer" style={{ position: 'absolute', bottom: '8px', left: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '4px', borderRadius: '4px' }}>
+                      <QRCodeSVG value={`${baseUrl}/api/waterPlant?plantName=${encodeURIComponent('Monstera')}`} size={30} />
+                    </a>
+                  )}
+                </div>
+                <p style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>Monstera</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '-8px' }}>
+                  {(() => {
+                    const status = getPlantStatus(wateringDays.monstera, wateringIntervals.monstera);
+                    return (
+                      <>
+                        <div style={{ width: '8px', height: '8px', backgroundColor: status.color, borderRadius: '50%' }}></div>
+                        <span style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+                          {status.text}
+                        </span>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ position: 'relative', marginBottom: '10px' }}>
+                  <img src="/Peperomia.jpg" alt="Peperomia" style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '4px', filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4)) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))' }} />
+                  {baseUrl && (
+                    <a href={`/api/waterPlant?plantName=${encodeURIComponent('Peperomia')}`} target="_blank" rel="noopener noreferrer" style={{ position: 'absolute', bottom: '8px', left: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '4px', borderRadius: '4px' }}>
+                      <QRCodeSVG value={`${baseUrl}/api/waterPlant?plantName=${encodeURIComponent('Peperomia')}`} size={30} />
+                    </a>
+                  )}
+                </div>
+                <p style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>Peperomia</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '-8px' }}>
+                  {(() => {
+                    const status = getPlantStatus(wateringDays.peperomia, wateringIntervals.peperomia);
+                    return (
+                      <>
+                        <div style={{ width: '8px', height: '8px', backgroundColor: status.color, borderRadius: '50%' }}></div>
+                        <span style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+                          {status.text}
+                        </span>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
+          {baselineAverage !== null && (
+            <div style={{ position: 'relative', marginTop: "calc(52%)", display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
               {/* Ripples */}
               {ripples.map((ripple) => (
                 <div
@@ -321,8 +482,8 @@ export default function Home() {
                 alt="Stone background"
                 style={{
                   position: 'absolute',
-                  width: '600px',
-                  height: '600px',
+                  width: '500px',
+                  height: '500px',
                   objectFit: 'contain',
                   zIndex: 0,
                   filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4)) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))',
