@@ -21,6 +21,11 @@ export default function Home() {
     monstera: 10,
     peperomia: 10,
   });
+  const [wateredAt, setWateredAt] = useState({
+    moneyTree: null,
+    monstera: null,
+    peperomia: null,
+  });
   const [baseUrl, setBaseUrl] = useState('');
   const audioRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -34,10 +39,40 @@ export default function Home() {
 
   const gifs = ['/cat.gif', '/matchaStir.gif', '/scenery.gif'];
 
-  const getPlantStatus = (days, interval) => {
-    if (days === interval) {
-      return { color: '#4ade80', text: 'Watered Today' }; // green
-    } else if (days === 0) {
+  const getPlantStatus = (days, interval, wateredAtTimestamp) => {
+    // Check if watered within the last 30 seconds
+    if (wateredAtTimestamp) {
+      try {
+        // Parse timestamp - handle PostgreSQL timestamp format (without timezone)
+        // If it doesn't have timezone info, append 'Z' to treat as UTC
+        let timestampStr = wateredAtTimestamp;
+        if (typeof wateredAtTimestamp === 'string' && !timestampStr.includes('T') && !timestampStr.includes('Z') && !timestampStr.includes('+') && !timestampStr.includes('-', 10)) {
+          // PostgreSQL format: 'YYYY-MM-DD HH:MM:SS.mmm' - convert to ISO with UTC
+          timestampStr = timestampStr.replace(' ', 'T') + 'Z';
+        }
+        
+        const now = Date.now();
+        const wateredTime = new Date(timestampStr).getTime();
+        
+        // Check if date parsing was successful
+        if (!isNaN(wateredTime) && wateredTime > 0) {
+          const secondsSinceWatered = (now - wateredTime) / 1000;
+          
+          // Debug logging
+          console.log('Watered timestamp:', wateredAtTimestamp, 'Parsed:', timestampStr, 'Time difference (seconds):', secondsSinceWatered);
+          
+          // Only show "Watered" if it's been less than 30 seconds
+          if (secondsSinceWatered >= 0 && secondsSinceWatered < 30) {
+            return { color: '#4ade80', text: 'Watered' }; // green
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing watered_at timestamp:', error, 'Timestamp:', wateredAtTimestamp);
+      }
+    }
+    
+    // Otherwise use the normal logic
+    if (days === 0) {
       return { color: '#ef4444', text: 'Needs water today' }; // red
     } else {
       return { color: '#eab308', text: `Needs watering in ${days} days` }; // yellow
@@ -243,17 +278,20 @@ export default function Home() {
 
           const updatedStatuses = {};
           const updatedIntervals = {};
+          const updatedWateredAt = {};
           data.plants.forEach((plant) => {
             const stateKey = plantNameMap[plant.plant_name];
             if (stateKey) {
               updatedStatuses[stateKey] = plant.days_until_next_watering || 0;
               updatedIntervals[stateKey] = plant.watering_interval || 7;
+              updatedWateredAt[stateKey] = plant.watered_at || null;
             }
           });
 
           if (Object.keys(updatedStatuses).length > 0) {
             setWateringDays((prev) => ({ ...prev, ...updatedStatuses }));
             setWateringIntervals((prev) => ({ ...prev, ...updatedIntervals }));
+            setWateredAt((prev) => ({ ...prev, ...updatedWateredAt }));
           }
         }
       } catch (error) {
@@ -394,7 +432,7 @@ export default function Home() {
                 <p style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>Money Tree</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '-8px' }}>
                   {(() => {
-                    const status = getPlantStatus(wateringDays.moneyTree, wateringIntervals.moneyTree);
+                    const status = getPlantStatus(wateringDays.moneyTree, wateringIntervals.moneyTree, wateredAt.moneyTree);
                     return (
                       <>
                         <div style={{ width: '8px', height: '8px', backgroundColor: status.color, borderRadius: '50%' }}></div>
@@ -418,7 +456,7 @@ export default function Home() {
                 <p style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>Monstera</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '-8px' }}>
                   {(() => {
-                    const status = getPlantStatus(wateringDays.monstera, wateringIntervals.monstera);
+                    const status = getPlantStatus(wateringDays.monstera, wateringIntervals.monstera, wateredAt.monstera);
                     return (
                       <>
                         <div style={{ width: '8px', height: '8px', backgroundColor: status.color, borderRadius: '50%' }}></div>
@@ -442,7 +480,7 @@ export default function Home() {
                 <p style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>Peperomia</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '-8px' }}>
                   {(() => {
-                    const status = getPlantStatus(wateringDays.peperomia, wateringIntervals.peperomia);
+                    const status = getPlantStatus(wateringDays.peperomia, wateringIntervals.peperomia, wateredAt.peperomia);
                     return (
                       <>
                         <div style={{ width: '8px', height: '8px', backgroundColor: status.color, borderRadius: '50%' }}></div>

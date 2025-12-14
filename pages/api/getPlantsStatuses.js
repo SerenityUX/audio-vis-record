@@ -20,7 +20,7 @@ export default async function handler(req, res) {
       `SELECT 
         id, 
         plant_name, 
-        watered_at, 
+        COALESCE(watered_at::text, NULL) as watered_at, 
         watering_interval, 
         days_until_next_watering 
        FROM WaterPlantLogView 
